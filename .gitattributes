@@ -7,3 +7,4 @@
 *.NASM linguist-language=Assembly
 *.a51 linguist-language=Assembly
 *.inc linguist-language=Assembly
+Makefile linguist-vendored=true
