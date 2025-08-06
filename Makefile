@@ -1,4 +1,4 @@
-FLAGS = -g -ffreestanding -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+FLAGS = -g -ffreestanding -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc -m32
 FILES = ./build/kernel.asm.o ./build/kernel.o
 
 all:
