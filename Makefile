@@ -1,13 +1,13 @@
-FLAGS = -g -ffreestanding -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc -m32
-FILES = ./build/kernel.asm.o ./build/kernel.o
+x86_64_asm_source_files := $(shell find src/impl/x86_64 -name *.asm)
+x86_64_asm_object_files := $(patsubst src/impl/x86_64/%.asm, build/x86_64/%.o, $(x86_64_asm_source_files))
 
-all:
-	rm -f ./bin/*
-	rm -f ./build/*
-	nasm -f bin ./src/boot.asm -o ./bin/boot.bin
-	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
-	i686-elf-g++ -I./src $(FLAGS) -std=gnu++17 -c ./src/kernel.cpp -o ./build/kernel.o
-	i686-elf-ld -r $(FILES) -o ./build/completeKernel.o
-	i686-elf-g++ $(FLAGS) -T ./Linkerscript.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/completeKernel.o
-	cat ./bin/boot.bin ./bin/kernel.bin > ./bin/os.bin
-	truncate -s 1474560 ./bin/os.bin
+build/x86_64/%.o : src/impl/x86_64/%.asm
+	@mkdir -p $(dir $@)
+	nasm -f elf64 $< -o $@
+
+.PHONY: build-x86_64
+build-x86_64: $(x86_64_asm_object_files)
+	@mkdir -p dist/x86_64
+	x86_64-elf-ld -n -o dist/x86_64/kernel.bin -T target/x86_64/linker.ld $(x86_64_asm_object_files)
+	cp dist/x86_64/kernel.bin target/x86_64/iso/boot/kernel.bin
+	grub-mkrescue -o dist/x86_64/kernel.iso target/x86_64/iso
