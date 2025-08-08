@@ -1,10 +1,10 @@
 //
 // Created by theo on 8/7/25.
 //
+#include "../../std/print.h"
 
 
-void kernel_main() {
-    std::print_clear();
-    std::print_set_color(PRINT_COLOR_WHITE, PRINT_COLOR_BLACK);
-    std::print()
+int kernel_main() {
+    //printSetColor(PRINT_COLOR_YELLOW, PRINT_COLOR_BLACK);
+    //print("Hello World!\n")
 }
