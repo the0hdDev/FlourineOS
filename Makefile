@@ -1,29 +1,48 @@
-kernel_source_files := $(shell find src/impl/kernel -name *.c)
-kernel_object_files := $(patsubst src/impl/kernel/%.c, build/kernel/%.o, $(kernel_source_files))
+# Compiler & Tools
+CC := x86_64-elf-gcc
+ASM := nasm
+LD := x86_64-elf-ld
 
-x86_64_c_source_files := $(shell find src/impl/x86_64 -name *.c)
-x86_64_c_object_files := $(patsubst src/impl/x86_64/%.c, build/x86_64/%.o, $(x86_64_c_source_files))
+INCLUDE_DIRS := $(shell find src -type d -print | sed 's/^/-I /')
 
-x86_64_asm_source_files := $(shell find src/impl/x86_64 -name *.asm)
+CFLAGS := $(INCLUDE_DIRS) -ffreestanding
+ASFLAGS := -f elf64
+
+all_c_source_files := $(shell find src -name "*.c")
+all_c_object_files := $(patsubst src/%.c, build/%.o, $(all_c_source_files))
+
+x86_64_asm_source_files := $(shell find src/impl/x86_64 -name "*.asm")
 x86_64_asm_object_files := $(patsubst src/impl/x86_64/%.asm, build/x86_64/%.o, $(x86_64_asm_source_files))
 
-x86_64_object_files := $(x86_64_c_object_files) $(x86_64_asm_object_files)
+all_object_files := $(all_c_object_files) $(x86_64_asm_object_files)
 
-$(kernel_object_files): build/kernel/%.o : src/impl/kernel/%.c
+$(all_c_object_files): build/%.o : src/%.c
 	mkdir -p $(dir $@) && \
-	x86_64-elf-gcc -c -I src/intf -ffreestanding $(patsubst build/kernel/%.o, src/impl/kernel/%.c, $@) -o $@
-
-$(x86_64_c_object_files): build/x86_64/%.o : src/impl/x86_64/%.c
-	mkdir -p $(dir $@) && \
-	x86_64-elf-gcc -c -I src/intf -ffreestanding $(patsubst build/x86_64/%.o, src/impl/x86_64/%.c, $@) -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 $(x86_64_asm_object_files): build/x86_64/%.o : src/impl/x86_64/%.asm
 	mkdir -p $(dir $@) && \
-	nasm -f elf64 $(patsubst build/x86_64/%.o, src/impl/x86_64/%.asm, $@) -o $@
+	$(ASM) $(ASFLAGS) $< -o $@
 
 .PHONY: build-x86_64
-build-x86_64: $(kernel_object_files) $(x86_64_object_files)
+build-x86_64: $(all_object_files)
 	mkdir -p dist/x86_64 && \
-	x86_64-elf-ld -n -o dist/x86_64/kernel.bin -T targets/x86_64/linker.ld $(kernel_object_files) $(x86_64_object_files) && \
-	cp dist/x86_64/kernel.bin targets/x86_64/iso/boot/kernel.bin && \
-	grub-mkrescue /usr/lib/grub/i386-pc -o dist/x86_64/kernel.iso targets/x86_64/iso
+	$(LD) -n -o dist/x86_64/kernel.bin -T linker.ld $(all_object_files) && \
+	cp dist/x86_64/kernel.bin target/x86_64/iso/boot/kernel.bin && \
+	grub-mkrescue /usr/lib/grub/i386-pc -o dist/x86_64/kernel.iso target/x86_64/iso
+
+
+.PHONY: show-files
+show-files:
+	@echo "C source files:"
+	@echo $(all_c_source_files)
+	@echo "C object files:"
+	@echo $(all_c_object_files)
+	@echo "ASM source files:"
+	@echo $(x86_64_asm_source_files)
+	@echo "ASM object files:"
+	@echo $(x86_64_asm_object_files)
+
+.PHONY: clean
+clean:
+	rm -rf build/ dist/
