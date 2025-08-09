@@ -3,7 +3,7 @@ set -e  # Bei Fehler abbrechen
 
 IMAGE_NAME="flourineos"
 BUILD_DIR="$(pwd)"
-KERNEL_ISO="dist/x86_64/kernel.iso"
+KERNEL_ISO="./dist/x86_64/kernel.iso"
 CONTAINER_WORKDIR="/root/env"
 
 # 1. Prüfe ob das Image existiert
@@ -21,7 +21,7 @@ sudo docker run --rm -it -v "$BUILD_DIR":"$CONTAINER_WORKDIR" -w "$CONTAINER_WOR
 # 3. Starte QEMU nur wenn ISO gebaut wurde
 if [[ -f "$KERNEL_ISO" ]]; then
     echo "[INFO] Starte QEMU..."
-    qemu-system-x86_64 "$KERNEL_ISO"
+    qemu-system-x86_64 -cdrom ./dist/x86_64/kernel.iso
 else
     echo "[ERROR] ISO-Datei '$KERNEL_ISO' wurde nicht gefunden. Build war evtl. fehlerhaft."
     exit 1

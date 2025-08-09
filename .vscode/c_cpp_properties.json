@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/src/impl/x86_64/boot"
+                "${workspaceFolder}/src/impl/x86_64/boot",
+                "${workspaceFolder}/src/std/kernel/kprintf"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang-18",
